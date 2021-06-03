@@ -1,0 +1,20 @@
+# tye application configuration file
+# read all about it at https://github.com/dotnet/tye
+#
+# when you've given us a try, we'd love to know what you think:
+#    https://aka.ms/AA7q20u
+#
+name: gatewaydemo
+services:
+- name: weather
+  project: Lti.Poc.Weather\Lti.Poc.Weather\Lti.Poc.Weather.csproj
+  bindings:
+    - port: 5580
+      containerPort: 80
+- name: sometext
+  project: Lti.Poc.SomeText\Lti.Poc.SomeText\Lti.Poc.SomeText.csproj
+  bindings:
+    - port: 5680
+      containerPort: 80
+  env:
+    - POC_NAME=CLOWN
