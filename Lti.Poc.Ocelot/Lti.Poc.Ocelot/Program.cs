@@ -21,6 +21,7 @@ namespace Lti.Poc.Ocelot
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                });
+                })
+            .ConfigureLogging(logging => logging.AddConsole());
     }
 }

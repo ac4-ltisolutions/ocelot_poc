@@ -9,12 +9,29 @@ services:
 - name: weather
   project: Lti.Poc.Weather\Lti.Poc.Weather\Lti.Poc.Weather.csproj
   bindings:
-    - port: 5580
-      containerPort: 80
+  - port: 5580
+    protocol: http
+    name: http
+  - port: 5581
+    protocol: https
+    name: https
 - name: sometext
   project: Lti.Poc.SomeText\Lti.Poc.SomeText\Lti.Poc.SomeText.csproj
   bindings:
-    - port: 5680
-      containerPort: 80
+  - port: 5680
+    protocol: http
+    name: http
+  - port: 5681
+    protocol: https
+    name: https
   env:
     - POC_NAME=CLOWN
+- name: oselot
+  project: Lti.Poc.Ocelot\Lti.Poc.Ocelot\Lti.Poc.Ocelot.csproj
+  bindings:
+  - port: 8080
+    protocol: http
+    name: http
+  - port: 44300
+    protocol: https
+    name: https
