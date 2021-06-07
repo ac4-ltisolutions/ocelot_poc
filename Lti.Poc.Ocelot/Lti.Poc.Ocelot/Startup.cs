@@ -33,7 +33,9 @@ namespace Lti.Poc.Ocelot
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Lti.Poc.Ocelot", Version = "v1" });
-            });
+            })
+            .AddLogging(logging => logging.AddConsole());
+            services.AddSwaggerForOcelot(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,6 +59,11 @@ namespace Lti.Poc.Ocelot
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+            });
+
+            app.UseSwaggerForOcelotUI(opt =>
+            {
+                opt.PathToSwaggerGenerator = "/swagger/docs";
             });
         }
     }
