@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -7,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using System;
@@ -29,12 +32,7 @@ namespace Lti.Poc.Ocelot
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOcelot();
-            services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Lti.Poc.Ocelot", Version = "v1" });
-            })
-            .AddLogging(logging => logging.AddConsole());
+            services.AddControllers();;
             services.AddSwaggerForOcelot(Configuration);
         }
 
@@ -44,8 +42,11 @@ namespace Lti.Poc.Ocelot
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Lti.Poc.Ocelot v1"));
+
+                app.UseSwaggerForOcelotUI(opt =>
+                {
+                    opt.PathToSwaggerGenerator = "/swagger/docs";
+                });
             }
 
             app.UseHttpsRedirection();
@@ -63,8 +64,15 @@ namespace Lti.Poc.Ocelot
 
             app.UseSwaggerForOcelotUI(opt =>
             {
-                opt.PathToSwaggerGenerator = "/swagger/docs";
+                opt.ReConfigureUpstreamSwaggerJson = AlterUpstreamSwaggerJson;
             });
+        }
+
+        private string AlterUpstreamSwaggerJson(HttpContext context, string swaggerJson)
+        {
+            var swagger = JObject.Parse(swaggerJson);
+            // ... alter upstream json
+            return swagger.ToString(Formatting.Indented);
         }
     }
 }

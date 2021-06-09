@@ -11,6 +11,7 @@ namespace Lti.Poc.SomeText.Controllers
     [Route("[controller]")]
     public class SomeTextController : ControllerBase
     {
+        
         private readonly ILogger<SomeTextController> _logger;
 
         public SomeTextController(ILogger<SomeTextController> logger)
@@ -28,6 +29,5 @@ namespace Lti.Poc.SomeText.Controllers
             })
             .ToArray();
         }
-        
     }
 }

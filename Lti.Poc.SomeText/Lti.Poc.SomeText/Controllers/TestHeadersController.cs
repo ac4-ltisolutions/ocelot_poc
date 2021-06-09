@@ -14,7 +14,7 @@ namespace Lti.Poc.SomeText.Controllers
         public IEnumerable<string> Get()
         {
             var headers = new List<string>();
-            foreach(var headerPair in Request.Headers)
+            foreach (var headerPair in Request.Headers)
             {
                 headers.Add($"{headerPair.Key}:{headerPair.Value}");
             }
