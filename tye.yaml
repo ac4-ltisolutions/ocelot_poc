@@ -26,12 +26,3 @@ services:
     name: https
   env:
     - POC_NAME=CLOWN
-- name: oselot
-  project: Lti.Poc.Ocelot\Lti.Poc.Ocelot\Lti.Poc.Ocelot.csproj
-  bindings:
-  - port: 8080
-    protocol: http
-    name: http
-  - port: 44300
-    protocol: https
-    name: https
