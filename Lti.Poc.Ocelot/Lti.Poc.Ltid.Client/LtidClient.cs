@@ -18,21 +18,20 @@ namespace Lti.Poc.Ltid.Client
         /// <summary>
         /// abstracted http client factory
         /// </summary>
-        private readonly IHttpClientFactory clientFactory;
+        protected readonly IHttpClientFactory clientFactory;
+        protected readonly LtidClientConfig config;
 
-        public LtidClient(IHttpClientFactory clientFactory)
+        public LtidClient(IHttpClientFactory clientFactory, LtidClientConfig config)
         {
             this.clientFactory = clientFactory;
+            this.config = config;
         }
 
         /// <summary>
         /// get information about all services
         /// </summary>
-        /// <returns></returns>
-        public async Task<List<LtiServiceInstanceDescription>> GetServiceInstanceDescriptions()
+        public async Task<IEnumerable<LtiServiceInstanceDescription>> GetAllServiceInstanceDescriptions()
         {
-            var services = new List<LtiServiceInstanceDescription>();
-
             var client = GetHttpClient();
 
 #pragma warning disable SecurityIntelliSenseCS // MS Security rules violation
@@ -44,9 +43,17 @@ namespace Lti.Poc.Ltid.Client
                 throw new System.Exception($"Unable to get service instance descriptions. HTTP{response.StatusCode}: {response.ReasonPhrase}");
             }
 
-            services = JsonConvert.DeserializeObject<List<LtiServiceInstanceDescription>>(await response.Content.ReadAsStringAsync());
+            var services = JsonConvert.DeserializeObject<List<LtiServiceInstanceDescription>>(await response.Content.ReadAsStringAsync());
 
             return services;
+        }
+
+        /// <summary>
+        /// return all service names only
+        /// </summary>
+        public async Task<IEnumerable<string>> GetAllServiceNames()
+        {
+            return GetServiceNames(await this.GetAllServiceInstanceDescriptions());
         }
 
         /// <summary>
@@ -55,40 +62,52 @@ namespace Lti.Poc.Ltid.Client
         public string ApiServiceGroupName { get; set; }
 
         /// <summary>
-        /// return instance information of only api groups
+        /// return API service instance information
+        /// API services are indicated by having a group value equal to ApiServiceGroupName
         /// </summary>
-        /// <returns></returns>
-        public async Task<List<LtiServiceInstanceDescription>> GetApiServiceDescriptions()
+        public async Task<IEnumerable<LtiServiceInstanceDescription>> GetApiServiceDescriptions()
         {
             if (string.IsNullOrEmpty(this.ApiServiceGroupName))
                 throw new System.ArgumentException("ApiServiceGroupName cannot be empty.");
                     
-            return (await this.GetServiceInstanceDescriptions())
+            return (await this.GetAllServiceInstanceDescriptions())
                 .Where(o => o.Group == this.ApiServiceGroupName).ToList();
         }
 
-        public async Task<List<LtiServiceInstanceDescription>> GetApiServiceNames()
+        /// <summary>
+        /// return API service names
+        /// API services are indicated by having a group value equal to ApiServiceGroupName
+        /// </summary>
+        public async Task<IEnumerable<string>> GetApiServiceNames()
         {
-            return (await this.GetApiServiceDescriptions())
-                .Where(o => o.Group == this.ApiServiceGroupName).ToList();
+            return GetServiceNames(await this.GetApiServiceDescriptions());
+        }
+
+        /// <summary>
+        /// extracts service names from service collection
+        /// </summary>
+        /// <param name="services"></param>
+        protected IEnumerable<string> GetServiceNames(IEnumerable<LtiServiceInstanceDescription> services)
+        {
+            return services.Select(o => o.ServiceName).ToList();
         }
 
         /// <summary>
         /// debug header for storing session key from client for debuging
         /// </summary>
-        private const string DEBUGHEADER = "Lti-DebugSessionKey";
+        protected const string DEBUGHEADER = "Lti-DebugSessionKey";
 
-        public async Task<bool> ValidateSession(HttpContext context)
+        public async Task<bool> ValidateDebugSession(HttpContext context)
         {
             var sessionExists = false;
             if (context.Request.Headers.TryGetValue(DEBUGHEADER, out StringValues sessionKey))
             {
-                sessionExists = await this.ValidateSession(context.Request.Host.Value, sessionKey.ToString());
+                sessionExists = await this.ValidateDebugSession(context.Request.Host.Value, sessionKey.ToString());
             }
             return sessionExists;
         }
 
-        public async Task<bool> ValidateSession(string hostName, string sessionKey)
+        public async Task<bool> ValidateDebugSession(string hostName, string sessionKey)
         {
             var client = GetHttpClient();
 
@@ -104,11 +123,15 @@ namespace Lti.Poc.Ltid.Client
             return false;
         }
 
+        /// <summary>
+        /// use Http Client factory to get Http Client based on configuration
+        /// </summary>
+        /// <returns></returns>
         protected HttpClient GetHttpClient()
         {
-            var client = clientFactory.CreateClient("ltid");
+            var client = clientFactory.CreateClient(this.config.HttpClientName);
 #pragma warning disable SecurityIntelliSenseCS // MS Security rules violation
-            client.BaseAddress = new System.Uri("http://ltid");
+            client.BaseAddress = new System.Uri($"{this.config.Scheme}://{this.config.Host}:{this.config.Port}");
 #pragma warning restore SecurityIntelliSenseCS // MS Security rules violation
             return client;
         }

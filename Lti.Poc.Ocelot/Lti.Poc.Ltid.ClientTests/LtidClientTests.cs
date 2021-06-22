@@ -15,7 +15,7 @@ namespace Lti.Poc.Ltid.ClientTests
         {
             var LtidClient_Ut = Factories.LtidClientTestFactory.GetForServiceList();
 
-            var descriptions = await LtidClient_Ut.GetServiceInstanceDescriptions();
+            var descriptions = await LtidClient_Ut.GetAllServiceInstanceDescriptions();
 
             Assert.NotEmpty(descriptions);
             Assert.Equal(4, descriptions.Count);

@@ -24,7 +24,7 @@ namespace Lti.Poc.Ltid.Client
                 await _next.Invoke(context);
             }
 
-            if (await _client.ValidateSession(context)) await _next.Invoke(context);
+            if (await _client.ValidateDebugSession(context)) await _next.Invoke(context);
 
 
             context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;

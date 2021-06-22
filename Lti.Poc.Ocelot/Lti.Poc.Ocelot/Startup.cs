@@ -1,4 +1,5 @@
 using Lti.Poc.Ltid.Client;
+using Lti.Poc.Ocelot.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -15,29 +16,31 @@ namespace Lti.Poc.Ocelot
     public class Startup
     {
         public IConfiguration Configuration { get; }
-        public ILtidClient LtidClient { get; }
 
-        public Startup(IConfiguration configuration, ILtidClient ltidClient)
+        public Startup(IConfiguration configuration)
         {
             this.Configuration = configuration;
-            this.LtidClient = ltidClient;
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddOcelot();
+            services.AddOcelot()
+                .AddLtidForOcelotAutorouting();
             services.AddControllers();;
             services.AddSwaggerForOcelot(this.Configuration);
+
+            services.AddScoped<ILtidClient, LtidClient>();
+            services.AddSingleton(serviceProvider => new LtidClientConfig());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILtidClient ltidClient)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseLtidDebugMiddleware(this.LtidClient);
+                // app.UseLtidDebugMiddleware(ltidClient);
             }
 
 
